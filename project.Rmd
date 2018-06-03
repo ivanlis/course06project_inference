@@ -107,6 +107,29 @@ sampleSd
 The theoretical and empirical values are close, the relative error is 
 `r 100 * abs(sampleSd - theoreticalSd) / theoreticalSd`%.
 
+Let's display the theoretical and empirical values on a plot.
+
+```{r}
+g <- ggplot(data = data.frame(x = means), mapping = aes(x = x)) +
+    geom_histogram(aes(y = ..density..), binwidth = 0.25, 
+                   boundary = 0, color = "black", fill = "white") + 
+    labs(title = "Parameters of the empirical sample mean distribution", 
+         y = "relative frequency") + 
+    geom_vline(xintercept = theoreticalMean, color="red", size = 1.5) +
+    annotate("text", 4.85, 0.3, label="Theoretical mean", 
+             color = "red", angle = 90) + 
+    geom_vline(xintercept = sampleMean, color="blue", size = 1.5) +
+    annotate("text", 5.15, 0.3, label="Sample mean", color="blue", angle=90) +
+    geom_vline(xintercept = theoreticalMean + c(-1, 1) * theoreticalSd, 
+               color = "red") + 
+    geom_vline(xintercept = sampleMean + c(-1, 1) * sampleSd, color = "blue")
+g
+```
+
+The histogram displays the sample distribution of the mean. 
+The red lines highlight the position of the theoretical mean and the interval from "mean minus theoretical standard deviation" to "mean plus theoretical standard deviation".
+The same is shown for the sample mean and standard deviation with blue lines.
+
 ### Distribution
 
 According to the CLT, the distribution of sample means converges to 
@@ -127,3 +150,10 @@ g <- ggplot(data = data.frame(x = means), mapping = aes(x = x)) +
                                                theoreticalSd))
 g
 ```
+
+On the figure above the histogram corresponds to the sample distribution of 
+means. 
+The superposed curve represents the Gaussian distribution the sample 
+means distribution converges to under the CLT.
+We can see that our empirical distribution is quite close to the Gaussian bell
+curve.
