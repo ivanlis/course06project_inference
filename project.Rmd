@@ -26,23 +26,73 @@ numSamples = 1000
 parLambda = 0.2
 ```
 
-To achieve our objectives we generate `r numSamples` sets of samples with `r sampleSize` random
+To achieve our objectives we generate `r numSamples` samples with `r sampleSize` random
 numbers in each of them. The distribution we draw from is exponential with rate `r parLambda`.
 To see what the empirical distribution looks like we build a histogram of the whole series.
 
 ```{r}
+set.seed(9876)
 samples <- rexp(sampleSize * numSamples, rate = parLambda)
 library(ggplot2)
 g <- ggplot(data = data.frame(x = samples), mapping = aes(x = x)) + 
     geom_histogram(aes(y = (..count..) / sum(..count..)), 
-                   binwidth = 1, boundary = 0, color = "black", fill = "red") +
+                   binwidth = 1, boundary = 0, color = "black", fill = "blue") +
     labs(title = "Empirical and theoretical exponential distribution", y = "relative frequency") +
     stat_function(fun = dexp, args = list(rate = parLambda))
 g
 ```
 
+Let's compute the sample of averages. This is the data we have to analyze.
+
+```{r}
+samples <- matrix(samples, nrow = numSamples, ncol = sampleSize, byrow = TRUE)
+means <- apply(samples, 1, mean)
+```
+
 ### Sample Mean vs Theoretical Mean
 
+The theoretical mean of the exponential distribution we used is
+
+```{r}
+theoreticalMean <- 1.0 / parLambda
+theoreticalMean
+```
+
+According to the properties of the expected value, the sample mean is distributed 
+with the same expected value.
+The sample mean of the averages we computed is
+
+```{r}
+sampleMean <- mean(means)
+sampleMean
+```
+
+It can be seen that the sample mean is quite close to its theoretical counterpart,
+the relative error is `r round(100 * abs(sampleMean - theoreticalMean) / theoreticalMean, 2)`%.
+The result agrees with the Law of Large Numbers.
+
 ### Sample Variance vs Theoretical Variance
+
+The variance of the exponential distribution we used is
+
+```{r}
+expVar <- 1.0 / (parLambda ^ 2)
+expVar
+```
+
+The variance of the sample mean is the variance of the sampling distribution divided by
+sample size.
+
+```{r}
+theoreticalVar <- expVar / sampleSize
+theoreticalVar
+```
+
+We approximate this theoretical variance with the sample variance.
+
+```{r}
+sampleVar <- var(means)
+sampleVar
+```
 
 ### Distribution
