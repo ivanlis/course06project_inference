@@ -1,0 +1,48 @@
+---
+title: "Course Project on Simulation and Inference"
+author: "Ivan Lysiuchenko"
+date: "June 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1. Observation of the Central Limit Theorem via Simulation of Exponential Random Numbers
+
+### Overview
+
+In Part 1 of this course project we will generate series of Exponential Random Numbers
+using the function provided for this purpose in R. Our aim is observe the empirical distribution
+of their means, how close it gets to the standard normal distribution as stated in the Central
+Limit Theorem (CLT).
+
+### Simulation
+
+```{r echo=TRUE}
+sampleSize = 40
+numSamples = 1000
+parLambda = 0.2
+```
+
+To achieve our objectives we generate `r numSamples` sets of samples with `r sampleSize` random
+numbers in each of them. The distribution we draw from is exponential with rate `r parLambda`.
+To see what the empirical distribution looks like we build a histogram of the whole series.
+
+```{r}
+samples <- rexp(sampleSize * numSamples, rate = parLambda)
+library(ggplot2)
+g <- ggplot(data = data.frame(x = samples), mapping = aes(x = x)) + 
+    geom_histogram(aes(y = (..count..) / sum(..count..)), 
+                   binwidth = 1, boundary = 0, color = "black", fill = "red") +
+    labs(title = "Empirical and theoretical exponential distribution", y = "relative frequency") +
+    stat_function(fun = dexp, args = list(rate = parLambda))
+g
+```
+
+### Sample Mean vs Theoretical Mean
+
+### Sample Variance vs Theoretical Variance
+
+### Distribution
