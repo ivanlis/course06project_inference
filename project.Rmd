@@ -35,7 +35,7 @@ set.seed(9876)
 samples <- rexp(sampleSize * numSamples, rate = parLambda)
 library(ggplot2)
 g <- ggplot(data = data.frame(x = samples), mapping = aes(x = x)) + 
-    geom_histogram(aes(y = (..count..) / sum(..count..)), 
+    geom_histogram(aes(y = ..density..), 
                    binwidth = 1, boundary = 0, color = "black", fill = "blue") +
     labs(title = "Empirical and theoretical exponential distribution", y = "relative frequency") +
     stat_function(fun = dexp, args = list(rate = parLambda))
@@ -108,3 +108,22 @@ The theoretical and empirical values are close, the relative error is
 `r 100 * abs(sampleSd - theoreticalSd) / theoreticalSd`%.
 
 ### Distribution
+
+According to the CLT, the distribution of sample means converges to 
+a normal distribution. Its mean and variance are the theoretical mean 
+(`r theoreticalMean`) and variance (`r theoreticalVar`) 
+mentioned in the previous two sections.
+
+Let's compare the empirical distribution of the `r numSamples` sample means
+we computed with its Gaussian limit according to the CLT.
+
+```{r}
+g <- ggplot(data = data.frame(x = means), mapping = aes(x = x)) +
+    geom_histogram(aes(y = ..density..), binwidth = 0.25, 
+                   boundary = 0, color = "black", fill = "red") + 
+    labs(title = "Empirical sample mean distribution and its Gaussian limit", 
+         y = "relative frequency") + 
+    stat_function(fun = dnorm, args = list(mean = theoreticalMean, sd =
+                                               theoreticalSd))
+g
+```
