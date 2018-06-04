@@ -2,7 +2,9 @@
 title: "Course Project on Simulation and Inference"
 author: "Ivan Lysiuchenko"
 date: "June 3, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -219,4 +221,143 @@ avgToothGrowth
 
 ### Inferential analysis
 
+First let's compare the tooth growth response between the two supplements for each dose.
+In all our tests we'll assume that the variances are not equal. Also definitely the two samples
+are not paired, because according to the description every animal received its own
+combination of dose and delivery type, and was tested once.
+We will use the Student t-test.
+
+#### Comparison of the supplements
+
+The null hypothesis H<sub>0</sub> states that the true means of the length are equal for
+both supplements. The alternative hypothesis is that the means are not equal.
+
+First we perform a two-sided test for dose 0.5.
+We choose a confidence level of 0.95.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 0.5, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+From the result we've obtained we see that zero is not inside the confidence interval,
+so with probability 0.975 the true mean belongs to the found positive interval.
+We reject the null hypothesis.
+The conclusion we draw that a dose 0.5 of orange juice is more effective than the same dose
+of ascorbic acid with probability 0.975 of Type I error.
+
+Let's do the same test for dose 1.0.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+Following the same reasoning, we reject the null hypothesis and conclude that orange juice
+is more effective for this dose with probability 0.975 of Type I error.
+
+For dose 2.0 we obtained very close sample mean values for both supplements, so it doesn't
+make sense to formulate a hypothesis that one of them is better than the other. The confidence
+interval would be centered close to zero in this case:
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 2.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+#### Comparison of the doses
+
+Let's check if the response (length) increases when the dose is increased to the next level.
+H<sub>0</sub> states that length does not change. The alternative hypothesis H<sub>a</sub> is 
+that length changes with the increase in dose.
+
+For the increase from 0.5 to 1.0 we have the following result, and we reject the null hypothesis
+for both supplement types.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+The conclusion is that length increases with the probability of Type I error 0.975.
+
+Let's consider the increase from 1.0 to 2.0.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+After a two-sided test for the case of orange juice we fail to reject the null hypothesis,
+but we do reject if we choose a confidence level at 0.95:
+
+```{r}
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.95)
+testRes$conf.int
+```
+
+In the case of ascorbic acid, we reject the null hypothesis in a two-sided test with Type I
+error probability 0.975.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
 ### Conclusions
+
+We made some basic inferential analysis of the ToothGrowth dataset. All the conclusions are based
+on two-sided t-tests. First, we compared
+the length response between the two supplements (delivery methods) present in the dataset:
+
+- for doses 0.5 and 1.0 we rejected the null hypothesis (stating that the true mean response was
+equal for both supplements) and concluded that orange juice performed better on average, 
+with Type I error probability 0.975.
+- for dose 2.0 we failed to reject the null hypothesis, it's evident that the means are
+very close to each other with respect to the standard deviations.
+
+The second set of tests treated the change in response length with each increase of the dose:
+
+- for ascorbic acid we rejected the null hypothesis (corresponding to "no change") and concluded
+that both the increase from 0.5 to 1.0 and from 1.0 to 2.0 were accompanied by a significant
+increase in the mean response (Type I error 0.975).
+- for orange juice we had a similar result for the increase from 0.5 to 1.0, but we failed to
+reject the null hypothesis for the difference between means when the dose 
+was increased from 1.0 to 2.0.
+Nevertheless, under somewhat looser conditions (Type I error probability at 0.95) we rejected
+the null hypothesis and confirmed a significant increase of the response mean.
