@@ -179,16 +179,43 @@ and which way of delivery seems more efficient.
 ```{r}
 data(ToothGrowth)
 
-library(dplyr)
-avgToothGrowth <- ToothGrowth %>% group_by(supp, dose) %>% summarize(avgLen = mean(len))
+summary(ToothGrowth)
 
-g <- ggplot(data = avgToothGrowth, mapping = aes(x = dose, y = avgLen, color = supp)) + 
-    geom_point() +
-    geom_line(size = 1.5)
+library(dplyr)
+avgToothGrowth <- ToothGrowth %>% group_by(supp, dose) %>% 
+    summarize(avgLen = mean(len), sdLen = sd(len), count = n())
+
+#g <- ggplot(data = avgToothGrowth, mapping = aes(x = dose, y = avgLen, color = supp)) + 
+#    geom_line(size = 1.5)
+g <- ggplot() + geom_point(data = ToothGrowth, mapping = aes(x = dose, y = len, color = supp)) +
+    geom_line(data = avgToothGrowth, mapping = aes(x = dose, y = avgLen, color = supp)) +
+    labs(title = "Average length as a function of dose", y = "average length")
+g
+```
+
+The plot suggests that the orange juice (OC) has a stronger effect (on average) than the ascorbic
+acid (VC) for the two lower doses. For the highest dose both delivery methods seem to have similar
+effect. To have a brief view on the sample distribution for each supplement-dose pair, let's build
+a violin plot as well.
+
+```{r}
+ToothGrowth$doseFactor <- as.factor(ToothGrowth$dose)
+
+g <- ggplot(data = ToothGrowth, mapping = aes(x = dose, y = len, 
+                                              group = doseFactor, fill = doseFactor)) +
+    facet_grid(. ~ supp) + geom_violin() +
+    labs(title = "Distribution of length for different supplements and doses", y = "length")
 g
 ```
 
 ### Summary of the data
+
+Here are some summary parameters of the data (supplement, dose, average length for each
+supplement-dose pair (across the 10 pigs observed), the corresponding sample standard deviation).
+
+```{r}
+avgToothGrowth
+```
 
 ### Inferential analysis
 
