@@ -157,3 +157,39 @@ The superposed curve represents the Gaussian distribution the sample
 means distribution converges to under the CLT.
 We can see that our empirical distribution is quite close to the Gaussian bell
 curve.
+
+## Part 2. Basic inferential analysis of the ToothGrowth dataset
+
+### Overview
+
+In this part of the project we perform some basic analysis of data on tooth growth in pigs.
+The question we want to answer is whether the response in the length of odontoblasts
+depends on the delivery method and whether the response improves if higher doses are used.
+
+### Exploratory data analysis
+
+The ToothGrowth dataset, according to its description (use "?ToothGrowth" in R) contains data
+on the response in the length of odontoblasts (cells responsible for tooth growth) in
+60 guinea pigs. Apart from the length of odontoblasts, the data set contains two variables:
+the type of supplement (orange juice or ascorbic acid) and the dose (0.5, 1, or 2 mg/day).
+
+Let's build a basic graph to have an idea on how the response changes depending on the dose
+and which way of delivery seems more efficient.
+
+```{r}
+data(ToothGrowth)
+
+library(dplyr)
+avgToothGrowth <- ToothGrowth %>% group_by(supp, dose) %>% summarize(avgLen = mean(len))
+
+g <- ggplot(data = avgToothGrowth, mapping = aes(x = dose, y = avgLen, color = supp)) + 
+    geom_point() +
+    geom_line(size = 1.5)
+g
+```
+
+### Summary of the data
+
+### Inferential analysis
+
+### Conclusions
