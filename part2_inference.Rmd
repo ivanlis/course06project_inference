@@ -1,0 +1,215 @@
+---
+title: "Basic Inferential Analysis"
+author: "Ivan Lysiuchenko"
+date: "June 5, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 5.5, fig.height = 3)
+```
+
+### Overview
+
+In this part of the project we perform some basic analysis of data on tooth growth in guinea pigs.
+The question we want to answer is whether the response in the length of odontoblasts
+depends on the delivery method and whether the response improves if higher doses are used.
+
+### Exploratory data analysis
+
+The ToothGrowth dataset, according to its description (use "?ToothGrowth" in R) contains data
+on the response in the length of odontoblasts (cells responsible for tooth growth) in
+60 guinea pigs. Apart from the length of odontoblasts, the data set contains two variables:
+the type of supplement (orange juice or ascorbic acid) and the dose (0.5, 1, or 2 mg/day).
+
+Let's build a violin plot to have an idea on how the response changes depending on the dose
+and which way of delivery seems more efficient. This way we'll have a brief view on the sample
+distribution for each supplement-dose pair.
+
+```{r}
+data(ToothGrowth)
+ToothGrowth$doseFactor <- as.factor(ToothGrowth$dose)
+
+library(ggplot2)
+
+g <- ggplot(data = ToothGrowth, mapping = aes(x = dose, y = len, 
+                                              group = doseFactor, fill = doseFactor)) +
+    facet_grid(. ~ supp) + geom_violin() +
+    labs(title = "Distribution of length for different supplements and doses", y = "length")
+g
+```
+
+Let's plot another graph to see where the means are situated:
+
+```{r message=FALSE}
+library(dplyr)
+avgToothGrowth <- ToothGrowth %>% group_by(supp, dose) %>% 
+    summarize(avgLen = mean(len), sdLen = sd(len), count = n())
+g <- ggplot() + 
+    geom_point(data = ToothGrowth, 
+               mapping = aes(x = dose, y = len, color = supp)) +
+    geom_line(data = avgToothGrowth, 
+              mapping = aes(x = dose, y = avgLen, color = supp)) +
+    labs(title = "Mean response as a function of dose", y = "length")
+g
+```
+
+Orange juice seems to have a stronger effect for doses 0.5 and 1.0, whereas for dose 2.0
+the sample means are very close to each other.
+
+### Summary of the data
+
+Here are some summary parameters of the data: supplement, dose, average length for each
+supplement-dose pair (across the 10 pigs observed), the corresponding sample standard deviation.
+
+```{r echo=FALSE}
+avgToothGrowth
+```
+
+### Inferential analysis
+
+Here we compare the means of the length response between the two supplements, as well 
+as between different doses.
+In all our tests we'll have two groups of observations and assume that the variances 
+of the groups are not equal. Also definitely the two samples
+are not paired, because according to the description every animal received its own
+combination of dose and delivery type, and was tested once.
+We will use the two sided Student's t-test.
+
+#### Comparison of the supplements
+
+```{r echo=FALSE}
+probError1 = 0.025
+```
+
+First let's compare the tooth growth response between the two supplements for a fixed dose.
+The null hypothesis H<sub>0</sub> states that the true length means are the same for both supplements. 
+The alternative hypothesis H<sub>a</sub> is that these means are not equal.
+
+Let's perform a two-sided test for dose 0.5.
+We choose a confidence level of `r 1 - probError1`.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 0.5, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+From the result we've obtained we see that zero is not inside the confidence interval,
+so with probability `r 1 - probError1` the true mean belongs to the found positive interval.
+We reject the null hypothesis.
+The conclusion we draw is that a dose 0.5 of orange juice is more effective than the same dose
+of ascorbic acid with probability `r probError1` of Type I error.
+
+Let's perform the same test for dose 1.0.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+Following the same reasoning, we reject the null hypothesis and conclude that orange juice
+is more effective for this dose with probability `r probError1` of Type I error.
+
+For dose 2.0 we obtained very close sample mean values for both supplements, so it doesn't
+make sense to formulate a hypothesis that one of them is better than the other. The confidence
+interval would be centered close to zero in this case:
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 2.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.975)
+testRes$conf.int
+```
+
+#### Comparison of the doses
+
+```{r echo=FALSE}
+probError2 = 0.05
+```
+
+Let's check if the response (length) increases when the dose is increased to the next level (given the same supplement).
+The null hypothesis H<sub>0</sub> states that the true length means are the same for the lower and higher doses. 
+The alternative hypothesis H<sub>a</sub> is that these means are not equal.
+Let's fix the probability of Type I error at `r probError2`.
+
+For the increase from 0.5 to 1.0 we have the following result for the case of orange juice.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.95)
+testRes$conf.int
+```
+
+Zero is not inside the confidence interval, so we reject the null hypothesis.
+With Type I error probability `r probError2` the response increases when the dose of
+orange juice is increased from 0.5 to 1.0.
+
+The same applies to the case of ascorbic acid.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 0.5, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.95)
+testRes$conf.int
+```
+
+
+For the increase from 1.0 to 2.0 for orange juice and ascorbic acid, 
+we reject the null hypothesis as well.
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.95)
+testRes$conf.int
+```
+
+```{r}
+x <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "VC" & ToothGrowth$dose == 1.0, "len"]
+testRes <- t.test(x, y, 
+                  alternative = "two.sided", paired = FALSE, 
+                  var.equal = FALSE, conf.level = 0.95)
+testRes$conf.int
+```
+
+### Conclusions
+
+We made some basic inferential analysis of the ToothGrowth dataset. All the conclusions are based
+on two-sided t-tests. First, we compared
+the length response between the two supplements (delivery methods) present in the dataset:
+
+- for doses 0.5 and 1.0 we rejected the null hypothesis (stating that the true mean response was
+equal for both supplements) and concluded that orange juice performed better on average, 
+with Type I error probability `r probError1`.
+- for dose 2.0 we failed to reject the null hypothesis, it's evident that the means are
+very close to each other with respect to the standard deviations.
+
+The second set of tests treated the change in response length with each increase of the dose.
+For Type I error probability of `r probError2` we rejected the null hypothesis and confirmed that
+the response mean increased with the dose increase.
+
+Our assumptions were the following:
+
+- strictly, the data should be normally distributed so that the sample mean be distributed
+following Student's t distribution
+- our tests were two-sample tests, we assumed different variances in the groups
+- the groups were not paired.
+
