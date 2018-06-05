@@ -208,6 +208,7 @@ the response mean increased with the dose increase.
 
 Our assumptions were the following:
 
+- the observations of length response have to be independent and identically distributed (iid)
 - strictly, the data should be normally distributed so that the sample mean be distributed
 following Student's t distribution
 - our tests were two-sample tests, we assumed different variances in the groups
