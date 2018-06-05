@@ -198,8 +198,8 @@ the sample means are very close to each other.
 
 ### Summary of the data
 
-Here are some summary parameters of the data (supplement, dose, average length for each
-supplement-dose pair (across the 10 pigs observed), the corresponding sample standard deviation).
+Here are some summary parameters of the data: supplement, dose, average length for each
+supplement-dose pair (across the 10 pigs observed), the corresponding sample standard deviation.
 
 ```{r echo=FALSE, message=FALSE}
 library(dplyr)
@@ -306,6 +306,8 @@ For the increase from 1.0 to 2.0 for orange juice and ascorbic acid,
 we reject the null hypothesis as well.
 
 ```{r echo=FALSE, results=TRUE}
+x <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 2.0, "len"]
+y <- ToothGrowth[ToothGrowth$supp == "OJ" & ToothGrowth$dose == 1.0, "len"]
 testRes <- t.test(x, y, 
                   alternative = "two.sided", paired = FALSE, 
                   var.equal = FALSE, conf.level = 0.95)
